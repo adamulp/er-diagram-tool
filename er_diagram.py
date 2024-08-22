@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QGraphicsItem, QGraphicsTextItem
 from PyQt5.QtGui import QPen, QBrush
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QRectF
 
 
 class ErDiagramItem(QGraphicsItem):
@@ -21,12 +21,21 @@ class ErDiagramItem(QGraphicsItem):
 
         self.text_item.setVisible(True)  # Ensure text item is visible
 
+        # Connect the textChanged signal to update the size
+        self.text_item.document().contentsChanged.connect(self.update_size)
+
     def set_text(self, text):
         self.text_item.setPlainText(text)
         self.update_size()
 
     def update_size(self):
-        pass  # To be implemented by derived classes
+        # Update the size of the item based on the text
+        text_rect = self.text_item.boundingRect()
+        rect = QRectF(
+            0, 0, max(100, text_rect.width() + 10), max(60, text_rect.height() + 10)
+        )
+        self.setRect(rect)
+        self.text_item.setPos(5, 5)
 
     def paint_selection(self, painter):
         if self.isSelected():

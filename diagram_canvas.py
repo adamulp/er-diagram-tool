@@ -49,28 +49,43 @@ class DiagramCanvas(QGraphicsView):
 
         if event.button() == Qt.LeftButton:
             if self.current_tool in {"rect", "oval", "triangle", "diamond"}:
-                # Handle item creation
+                # Handle item creation or text editing
                 self.exit_text_editing()
                 self.scene().clearSelection()
 
-                if self.current_tool == "rect":
-                    self.current_item = RectItem(pos.x(), pos.y(), 0, 0)
-                elif self.current_tool == "oval":
-                    self.current_item = OvalItem(pos.x(), pos.y(), 0, 0)
-                elif self.current_tool == "triangle":
-                    self.current_item = TriangleItem(pos.x(), pos.y(), 50, 50)
-                elif self.current_tool == "diamond":
-                    self.current_item = DiamondItem(pos.x(), pos.y(), 50, 50)
+                item = self.itemAt(event.pos())
+                if item and isinstance(item, ErDiagramItem):
+                    # Clicked on an existing item: Select and enter text edit mode
+                    if self.current_tool == "select":
+                        if not item.isSelected():
+                            self.scene().clearSelection()
+                            item.setSelected(True)
+                        item.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
+                        item.text_item.setFocus()
+                else:
+                    # Create a new item
+                    if self.current_tool == "rect":
+                        self.current_item = RectItem(pos.x(), pos.y(), 0, 0)
+                    elif self.current_tool == "oval":
+                        self.current_item = OvalItem(pos.x(), pos.y(), 0, 0)
+                    elif self.current_tool == "triangle":
+                        self.current_item = TriangleItem(pos.x(), pos.y(), 50, 50)
+                    elif self.current_tool == "diamond":
+                        self.current_item = DiamondItem(pos.x(), pos.y(), 50, 50)
 
-                self.scene().addItem(self.current_item)
-                self.current_item = None
+                    if self.current_item:
+                        self.scene().addItem(self.current_item)
+                        self.current_item = None
 
             elif self.current_tool == "select":
+                # Handle selection and text editing
                 item = self.itemAt(event.pos())
                 if item and isinstance(item, ErDiagramItem):
                     if not item.isSelected():
                         self.scene().clearSelection()
                         item.setSelected(True)
+                    item.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
+                    item.text_item.setFocus()
                 else:
                     # Start the selection box for multi-selection
                     self.selection_start = pos
@@ -81,7 +96,6 @@ class DiagramCanvas(QGraphicsView):
                     self.selection_box.setBrush(QBrush(Qt.NoBrush))
                     self.scene().addItem(self.selection_box)
 
-        # Call the base class implementation to ensure default behavior
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
@@ -130,12 +144,15 @@ class DiagramCanvas(QGraphicsView):
                 item.clear_text_editing()
 
     def mouseDoubleClickEvent(self, event):
+        super().mouseDoubleClickEvent(event)
         pos = self.mapToScene(event.pos())
         item = self.itemAt(event.pos())
+
         if item and isinstance(item, ErDiagramItem):
             # Exit text editing mode for all other items
             self.exit_text_editing()
+
+            # Enable text editing for the double-clicked item
             item.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
             item.text_item.setFlag(QGraphicsItem.ItemIsFocusable)
             item.text_item.setFocus()
-        super().mouseDoubleClickEvent(event)

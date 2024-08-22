@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (
     QGraphicsScene,
     QGraphicsRectItem,
     QApplication,
+    QGraphicsTextItem,
     QGraphicsItem,
 )
 from PyQt5.QtGui import QCursor, QPainter, QBrush, QPen
@@ -15,6 +16,36 @@ class SimpleItem(QGraphicsRectItem):
         self.setFlag(QGraphicsItem.ItemIsMovable)
         self.setFlag(QGraphicsItem.ItemIsSelectable)
         self.setBrush(QBrush(Qt.lightGray))
+
+        # Add a text item inside the rectangle
+        self.text_item = QGraphicsTextItem("", self)
+        self.text_item.setTextInteractionFlags(Qt.NoTextInteraction)
+        self.text_item.setDefaultTextColor(Qt.black)
+        self.text_item.setPos(5, 5)
+
+        # Update the item size based on the text
+        self.update_size()
+
+    def set_text(self, text):
+        self.text_item.setPlainText(text)
+        self.update_size()
+
+    def update_size(self):
+        text_rect = self.text_item.boundingRect()
+        rect = QRectF(
+            0, 0, max(100, text_rect.width() + 10), max(60, text_rect.height() + 10)
+        )
+        self.setRect(rect)
+        self.text_item.setPos(5, 5)
+
+    def focusInEvent(self, event):
+        super().focusInEvent(event)
+        self.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
+        self.text_item.setFocus()
+
+    def focusOutEvent(self, event):
+        super().focusOutEvent(event)
+        self.text_item.setTextInteractionFlags(Qt.NoTextInteraction)
 
 
 class SimpleCanvas(QGraphicsView):
@@ -31,9 +62,14 @@ class SimpleCanvas(QGraphicsView):
         self.setup_scene()
 
     def setup_scene(self):
-        # Add a single SimpleItem to test movement
-        item = SimpleItem(100, 100, 100, 100)
-        self.scene().addItem(item)
+        # Add two SimpleItems for testing
+        item1 = SimpleItem(100, 100, 100, 100)
+        item1.set_text("Item 1")
+        self.scene().addItem(item1)
+
+        item2 = SimpleItem(300, 100, 100, 100)
+        item2.set_text("Item 2")
+        self.scene().addItem(item2)
 
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
@@ -50,6 +86,12 @@ class SimpleCanvas(QGraphicsView):
     def mouseDoubleClickEvent(self, event):
         super().mouseDoubleClickEvent(event)
         print("Mouse double-clicked:", event.pos())
+        pos = self.mapToScene(event.pos())
+        item = self.itemAt(event.pos())
+        if item and isinstance(item, SimpleItem):
+            item.setFocus()
+            item.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
+            item.text_item.setFocus()
 
 
 if __name__ == "__main__":
