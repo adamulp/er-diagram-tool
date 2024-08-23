@@ -1,6 +1,12 @@
-from PyQt5.QtWidgets import QGraphicsItem, QGraphicsTextItem
-from PyQt5.QtGui import QPen, QBrush
-from PyQt5.QtCore import Qt, QRectF
+from PyQt5.QtWidgets import (
+    QGraphicsItem,
+    QGraphicsTextItem,
+    QGraphicsRectItem,
+    QGraphicsEllipseItem,
+    QGraphicsPolygonItem,
+)
+from PyQt5.QtGui import QPolygonF, QPen, QBrush
+from PyQt5.QtCore import Qt, QRectF, QPointF
 
 
 class ErDiagramItem(QGraphicsItem):
@@ -29,20 +35,54 @@ class ErDiagramItem(QGraphicsItem):
         self.update_size()
 
     def update_size(self):
-        # Update the size of the item based on the text
+        # Centralize size update logic based on the item type
         text_rect = self.text_item.boundingRect()
+        width = max(100, text_rect.width() + 10)
+        height = max(60, text_rect.height() + 10)
 
-        # Define the minimum width and height for the item
-        min_width = max(100, text_rect.width() + 10)
-        min_height = max(60, text_rect.height() + 10)
+        if isinstance(self, QGraphicsRectItem) or isinstance(
+            self, QGraphicsEllipseItem
+        ):
+            # For rectangles and ellipses
+            self.setRect(QRectF(0, 0, width, height))
 
-        # Set the rectangle size
-        rect = QRectF(0, 0, min_width, min_height)
-        self.setRect(rect)
+        elif isinstance(self, QGraphicsPolygonItem):
+            # For polygon-based items (e.g., triangles, diamonds)
+            self.update_polygon_shape(width, height)
 
-        # Calculate the x position to center the text horizontally
-        centered_x = (min_width - text_rect.width()) / 2
-        self.text_item.setPos(centered_x, 5)
+        # Adjust the text position within the shape
+        self.text_item.setPos(
+            width / 2 - text_rect.width() / 2, height / 2 - text_rect.height() / 2
+        )
+
+    def update_polygon_shape(self, width, height):
+        # This method will handle the shape updates for polygon items
+        if hasattr(self, "shape_type") and self.shape_type == "triangle":
+            self.set_triangle_shape(width, height)
+        elif hasattr(self, "shape_type") and self.shape_type == "diamond":
+            self.set_diamond_shape(width, height)
+        # Add other shape-specific logic here if needed
+
+    def set_triangle_shape(self, width, height):
+        # Define points for a triangle (equilateral triangle centered at origin)
+        points = [
+            QPointF(width / 2, 0),
+            QPointF(0, height),
+            QPointF(width, height),
+        ]
+        polygon = QPolygonF(points)
+        self.setPolygon(polygon)
+
+    def set_diamond_shape(self, width, height):
+        # Define points for a diamond shape
+        points = [
+            QPointF(width / 2, 0),
+            QPointF(width, height / 2),
+            QPointF(width / 2, height),
+            QPointF(0, height / 2),
+        ]
+        polygon = QPolygonF(points)
+        self.setPolygon(polygon)
 
     def paint_selection(self, painter):
         if self.isSelected():

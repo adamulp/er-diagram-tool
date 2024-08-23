@@ -1,7 +1,6 @@
-from PyQt5.QtWidgets import QToolBar, QAction, QGraphicsTextItem
+from PyQt5.QtWidgets import QToolBar, QAction, QGraphicsTextItem, QGraphicsScene
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QGraphicsScene  # Ensure QGraphicsScene is imported
 
 
 class TextToolbar(QToolBar):
@@ -27,23 +26,23 @@ class TextToolbar(QToolBar):
         self.addAction(self.underline_action)
 
     def toggle_bold(self):
-        self._toggle_font_style(QFont.bold)
+        self._toggle_font_style("bold")
 
     def toggle_italic(self):
-        self._toggle_font_style(QFont.italic)
+        self._toggle_font_style("italic")
 
     def toggle_underline(self):
-        self._toggle_font_style(QFont.underline)  # Correctly use QFont.Underline
+        self._toggle_font_style("underline")
 
-    def _toggle_font_style(self, font_style):
+    def _toggle_font_style(self, style):
         selected_items = self._get_selected_text_items()
         for item in selected_items:
             current_font = item.font()
-            if font_style == QFont.Bold:
+            if style == "bold":
                 current_font.setBold(not current_font.bold())
-            elif font_style == QFont.Italic:
+            elif style == "italic":
                 current_font.setItalic(not current_font.italic())
-            elif font_style == QFont.Underline:
+            elif style == "underline":
                 current_font.setUnderline(not current_font.underline())
             item.setFont(current_font)
 
