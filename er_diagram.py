@@ -21,7 +21,7 @@ class ErDiagramItem(QGraphicsItem):
 
         self.text_item.setVisible(True)  # Ensure text item is visible
 
-        # Connect the textChanged signal to update the size
+        # Connect the contentsChanged signal to update the size and position
         self.text_item.document().contentsChanged.connect(self.update_size)
 
     def set_text(self, text):
@@ -31,11 +31,18 @@ class ErDiagramItem(QGraphicsItem):
     def update_size(self):
         # Update the size of the item based on the text
         text_rect = self.text_item.boundingRect()
-        rect = QRectF(
-            0, 0, max(100, text_rect.width() + 10), max(60, text_rect.height() + 10)
-        )
+
+        # Define the minimum width and height for the item
+        min_width = max(100, text_rect.width() + 10)
+        min_height = max(60, text_rect.height() + 10)
+
+        # Set the rectangle size
+        rect = QRectF(0, 0, min_width, min_height)
         self.setRect(rect)
-        self.text_item.setPos(5, 5)
+
+        # Calculate the x position to center the text horizontally
+        centered_x = (min_width - text_rect.width()) / 2
+        self.text_item.setPos(centered_x, 5)
 
     def paint_selection(self, painter):
         if self.isSelected():

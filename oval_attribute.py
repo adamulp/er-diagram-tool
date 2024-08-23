@@ -15,6 +15,7 @@ class OvalItem(QGraphicsEllipseItem, ErDiagramItem):
         self.update_size()
 
     def update_size(self):
+        super().update_size()
         text_rect = self.text_item.boundingRect()
         self.setRect(
             self.rect().x(),

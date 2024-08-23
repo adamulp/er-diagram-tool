@@ -19,6 +19,7 @@ class RectItem(QGraphicsRectItem, ErDiagramItem):
         self.update_size()
 
     def update_size(self):
+        super().update_size()
         text_rect = self.text_item.boundingRect()
         rect = QRectF(
             0, 0, max(100, text_rect.width() + 10), max(60, text_rect.height() + 10)
