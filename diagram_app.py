@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import (
     QMainWindow,
     QVBoxLayout,
-    QHBoxLayout,
     QWidget,
     QApplication,
     QGraphicsScene,
@@ -24,6 +23,7 @@ class MainWindow(QMainWindow):
 
         # Diagram canvas
         self.scene = QGraphicsScene()
+        self.scene.main_window = self  # Provide access to MainWindow from the scene
         self.view = DiagramCanvas(self.scene)
         main_layout.addWidget(self.view)
 
@@ -35,6 +35,13 @@ class MainWindow(QMainWindow):
         self.addToolBar(Qt.TopToolBarArea, self.text_toolbar)  # Top side
 
         self.setCentralWidget(central_widget)
+
+    def get_selected_items(self):
+        # Return the selected items from the scene
+        return self.scene.selectedItems()
+
+    def switch_to_selection_tool(self):
+        self.tool_selection_bar.select_tool("select")
 
 
 if __name__ == "__main__":

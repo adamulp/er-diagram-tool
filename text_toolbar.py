@@ -1,4 +1,9 @@
-from PyQt5.QtWidgets import QToolBar, QAction, QGraphicsTextItem, QGraphicsScene
+from PyQt5.QtWidgets import (
+    QToolBar,
+    QAction,
+    QFontComboBox,
+    QComboBox,
+)
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import Qt
 
@@ -6,53 +11,91 @@ from PyQt5.QtCore import Qt
 class TextToolbar(QToolBar):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.main_window = parent
 
-        # Bold Action
+        # Bold action
         self.bold_action = QAction(QIcon("icons/bold.svg"), "Bold", self)
         self.bold_action.setCheckable(True)
         self.bold_action.triggered.connect(self.toggle_bold)
         self.addAction(self.bold_action)
 
-        # Italic Action
+        # Italic action
         self.italic_action = QAction(QIcon("icons/italic.svg"), "Italic", self)
         self.italic_action.setCheckable(True)
         self.italic_action.triggered.connect(self.toggle_italic)
         self.addAction(self.italic_action)
 
-        # Underline Action
+        # Underline action
         self.underline_action = QAction(QIcon("icons/underline.svg"), "Underline", self)
         self.underline_action.setCheckable(True)
         self.underline_action.triggered.connect(self.toggle_underline)
         self.addAction(self.underline_action)
 
+        # Font selection box
+        self.font_box = QFontComboBox(self)
+        self.font_box.currentFontChanged.connect(self.change_font)
+        self.addWidget(self.font_box)
+
+        # Font size selection box
+        self.size_box = QComboBox(self)
+        self.size_box.setEditable(True)
+        self.size_box.addItems([str(i) for i in range(8, 30, 2)])
+        self.size_box.setCurrentIndex(2)
+        self.size_box.currentTextChanged.connect(self.change_font_size)
+        self.addWidget(self.size_box)
+
+    def apply_format_to_selected_item(self, format_function):
+        selected_items = self.main_window.get_selected_items()
+        for item in selected_items:
+            if hasattr(item, "text_item"):
+                text_item = item.text_item
+                cursor = text_item.textCursor()
+                cursor.select(cursor.Document)  # Select the entire text
+                format_function(cursor)  # Apply the formatting function
+                text_item.setTextCursor(cursor)  # Set the updated cursor back
+
+                # Unselect the text by setting the cursor position at the end
+                cursor.clearSelection()
+                text_item.setTextCursor(cursor)
+
     def toggle_bold(self):
-        self._toggle_font_style("bold")
+        def format_function(cursor):
+            fmt = cursor.charFormat()
+            fmt.setFontWeight(
+                QFont.Bold if self.bold_action.isChecked() else QFont.Normal
+            )
+            cursor.setCharFormat(fmt)
+
+        self.apply_format_to_selected_item(format_function)
 
     def toggle_italic(self):
-        self._toggle_font_style("italic")
+        def format_function(cursor):
+            fmt = cursor.charFormat()
+            fmt.setFontItalic(self.italic_action.isChecked())
+            cursor.setCharFormat(fmt)
+
+        self.apply_format_to_selected_item(format_function)
 
     def toggle_underline(self):
-        self._toggle_font_style("underline")
+        def format_function(cursor):
+            fmt = cursor.charFormat()
+            fmt.setFontUnderline(self.underline_action.isChecked())
+            cursor.setCharFormat(fmt)
 
-    def _toggle_font_style(self, style):
-        selected_items = self._get_selected_text_items()
-        for item in selected_items:
-            current_font = item.font()
-            if style == "bold":
-                current_font.setBold(not current_font.bold())
-            elif style == "italic":
-                current_font.setItalic(not current_font.italic())
-            elif style == "underline":
-                current_font.setUnderline(not current_font.underline())
-            item.setFont(current_font)
+        self.apply_format_to_selected_item(format_function)
 
-    def _get_selected_text_items(self):
-        # Get the scene from the parent widget
-        scene = self.parent().findChild(QGraphicsScene)
-        if scene:
-            return [
-                item
-                for item in scene.selectedItems()
-                if isinstance(item, QGraphicsTextItem)
-            ]
-        return []
+    def change_font(self, font):
+        def format_function(cursor):
+            fmt = cursor.charFormat()
+            fmt.setFontFamily(font.family())
+            cursor.setCharFormat(fmt)
+
+        self.apply_format_to_selected_item(format_function)
+
+    def change_font_size(self, size):
+        def format_function(cursor):
+            fmt = cursor.charFormat()
+            fmt.setFontPointSize(float(size))
+            cursor.setCharFormat(fmt)
+
+        self.apply_format_to_selected_item(format_function)

@@ -79,3 +79,20 @@ class ToolSelectionBar(QToolBar):
         canvas = self.parent().findChild(DiagramCanvas)
         if canvas:
             canvas.set_tool(tool_name)
+
+    def select_tool(self, tool_name):
+        """Programmatically select a tool."""
+        action_map = {
+            "rect": self.rect_action,
+            "oval": self.oval_action,
+            "diamond": self.diamond_action,
+            "triangle": self.triangle_action,
+            "arrow_connector": self.arrow_action,
+            "line_connector": self.line_action,
+            "text": self.text_action,
+            "select": self.select_action,
+        }
+        action = action_map.get(tool_name)
+        if action:
+            action.setChecked(True)
+            self.set_tool(tool_name)
