@@ -13,6 +13,9 @@ from oval_attribute import OvalItem
 from triangle_special_generalization import TriangleItem
 from diamond_relationship import DiamondItem
 from er_diagram import ErDiagramItem
+from arrow_connector import ArrowConnector
+from line_connector import LineConnector
+from double_arrow_connector import DoubleArrowConnector
 
 
 class DiagramCanvas(QGraphicsView):
@@ -28,6 +31,7 @@ class DiagramCanvas(QGraphicsView):
         self.current_item = None
         self.selection_box = None  # To hold the temporary selection box
         self.selection_start = None  # Start point for selection box
+        self.selected_items = []  # Track items selected for connection
 
         self.setScene(scene)  # Ensure the scene is set correctly
         self.scene().selectionChanged.connect(self.handle_selection_change)
@@ -43,6 +47,8 @@ class DiagramCanvas(QGraphicsView):
             self.setCursor(QCursor(Qt.CrossCursor))
         elif self.current_tool == "select":
             self.setCursor(QCursor(Qt.ArrowCursor))
+        elif self.current_tool in {"arrow_connector", "line_connector"}:
+            self.setCursor(QCursor(Qt.CrossCursor))
 
     def mousePressEvent(self, event):
         pos = self.mapToScene(event.pos())
@@ -95,6 +101,41 @@ class DiagramCanvas(QGraphicsView):
                     self.selection_box.setPen(QPen(Qt.blue, 2, Qt.DashLine))
                     self.selection_box.setBrush(QBrush(Qt.NoBrush))
                     self.scene().addItem(self.selection_box)
+
+            elif self.current_tool in {"arrow_connector", "line_connector"}:
+                # Handle connection creation between two items
+                item = self.itemAt(event.pos())
+                if item and isinstance(item, ErDiagramItem):
+                    self.selected_items.append(item)
+                    if len(self.selected_items) == 2:
+                        # Two items selected, create a connector
+                        start_item, end_item = self.selected_items
+                        if self.current_tool == "arrow_connector":
+                            connector = ArrowConnector(start_item, end_item)
+                        elif self.current_tool == "line_connector":
+                            connector = LineConnector(start_item, end_item)
+
+                        if connector:
+                            self.scene().addItem(connector)
+                        self.selected_items = (
+                            []
+                        )  # Clear the selection for the next connection
+
+            elif self.current_tool == "double_arrow_connector":
+                # Handle connection creation between two items
+                item = self.itemAt(event.pos())
+                if item and isinstance(item, ErDiagramItem):
+                    self.selected_items.append(item)
+                    if len(self.selected_items) == 2:
+                        # Two items selected, create a double arrow connector
+                        start_item, end_item = self.selected_items
+                        connector = DoubleArrowConnector(start_item, end_item)
+
+                        if connector:
+                            self.scene().addItem(connector)
+                        self.selected_items = (
+                            []
+                        )  # Clear the selection for the next connection
 
         super().mousePressEvent(event)
 
@@ -156,3 +197,7 @@ class DiagramCanvas(QGraphicsView):
             item.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
             item.text_item.setFlag(QGraphicsItem.ItemIsFocusable)
             item.text_item.setFocus()
+
+            # Switch to selection tool
+            self.set_tool("select")
+            self.update_cursor()

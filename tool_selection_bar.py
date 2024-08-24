@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QToolBar, QAction, QActionGroup
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 from diagram_canvas import DiagramCanvas  # Import DiagramCanvas
+from double_arrow_connector import DoubleArrowConnector
 
 
 class ToolSelectionBar(QToolBar):
@@ -43,6 +44,16 @@ class ToolSelectionBar(QToolBar):
         self.arrow_action.triggered.connect(lambda: self.set_tool("arrow_connector"))
         self.addAction(self.arrow_action)
 
+        # Double Arrow Connector Tool Action
+        self.double_arrow_action = QAction(
+            QIcon("icons/double-arrow.svg"), "Double Arrow Connector Tool", self
+        )
+        self.double_arrow_action.setCheckable(True)
+        self.double_arrow_action.triggered.connect(
+            lambda: self.set_tool("double_arrow_connector")
+        )
+        self.addAction(self.double_arrow_action)
+
         # Line Connector Tool Action
         self.line_action = QAction(QIcon("icons/line.svg"), "Line Connector Tool", self)
         self.line_action.setCheckable(True)
@@ -69,6 +80,7 @@ class ToolSelectionBar(QToolBar):
         self.action_group.addAction(self.diamond_action)
         self.action_group.addAction(self.triangle_action)
         self.action_group.addAction(self.arrow_action)
+        self.action_group.addAction(self.double_arrow_action)
         self.action_group.addAction(self.line_action)
         self.action_group.addAction(self.text_action)
         self.action_group.addAction(self.select_action)

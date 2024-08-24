@@ -36,7 +36,7 @@ class TriangleItem(ErDiagramItem):
         self.paint_selection(painter)
 
     def update_size(self):
-        super().update_size()
+        ErDiagramItem().update_size()
         text_rect = self.text_item.boundingRect()
 
         self.width = max(self.width, text_rect.width() + 10)

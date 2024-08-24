@@ -21,6 +21,7 @@ class OvalItem(QGraphicsEllipseItem, ErDiagramItem):
         self.update_size()
 
     def update_size(self):
+        ErDiagramItem().update_size()
         # Call the parent class's update_size method to get text rect and base size logic
         text_rect = self.text_item.boundingRect()
 

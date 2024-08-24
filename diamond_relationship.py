@@ -30,7 +30,7 @@ class DiamondItem(QGraphicsPolygonItem, ErDiagramItem):
         self.setPolygon(polygon)
 
     def update_size(self):
-        super().update_size()
+        ErDiagramItem().update_size()
         text_rect = self.text_item.boundingRect()
         self.width = max(100, text_rect.width() + 10)
         self.height = max(60, text_rect.height() + 10)

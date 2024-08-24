@@ -14,7 +14,7 @@ from diagram_canvas import DiagramCanvas  # Assuming this is where the drawing h
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("ER Diagram Editor")
+        self.setWindowTitle("Diagramator")
         self.setGeometry(100, 100, 1200, 800)
 
         # Main layout

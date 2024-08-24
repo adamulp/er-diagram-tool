@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   version="1.1"
    viewBox="0 0 100 100"
-   width="100"
-   height="100"
-   id="svg4"
-   sodipodi:docname="triangle.svg"
+   version="1.1"
+   id="svg6"
+   sodipodi:docname="double-arrow.svg"
    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
-     id="defs8" />
+     id="defs10" />
   <sodipodi:namedview
-     id="namedview6"
+     id="namedview8"
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
@@ -22,20 +20,31 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      showgrid="false"
-     inkscape:zoom="6.51"
-     inkscape:cx="50"
-     inkscape:cy="50"
+     inkscape:zoom="3.255"
+     inkscape:cx="18.58679"
+     inkscape:cy="51.152074"
      inkscape:window-width="1920"
      inkscape:window-height="999"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg4" />
+     inkscape:current-layer="svg6" />
+  <line
+     x1="20.286987"
+     y1="45.550705"
+     x2="79.599915"
+     y2="45.550705"
+     stroke="#0f64ee"
+     stroke-width="8.38526"
+     id="line2" />
   <polygon
-     points="90,85 10,85 50,15 "
-     fill="#e0e0e0"
-     stroke="#000000"
-     stroke-width="2"
-     id="polygon2"
-     transform="rotate(179.9821,50,49.492218)" />
+     points="70,50 60,45 60,55 "
+     fill="#0f64ee"
+     id="polygon4"
+     transform="matrix(1.7188082,0,0,3.1373728,-29.230378,-111.67819)" />
+  <polygon
+     points="70,50 60,45 60,55 "
+     fill="#0f64ee"
+     id="polygon4-3"
+     transform="matrix(-1.7188011,-0.00459381,0.00921674,-2.9868962,130.18935,194.44885)" />
 </svg>

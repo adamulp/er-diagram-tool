@@ -20,7 +20,7 @@ class RectItem(QGraphicsRectItem, ErDiagramItem):
         self.update_size()
 
     def update_size(self):
-        super().update_size()
+        ErDiagramItem().update_size()
         if hasattr(self, "text_item") and self.text_item is not None:
             text_rect = self.text_item.boundingRect()
             rect = QRectF(
