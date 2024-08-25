@@ -188,30 +188,6 @@ class DiagramCanvas(QGraphicsView):
         elif self.current_tool == "double_arrow_connector":
             return DoubleArrowConnector(start_pos, end_pos)
 
-    def add_arrowhead(self, start_pos, end_pos, line_item):
-        arrow_size = 10
-        line = QLineF(start_pos, end_pos)
-
-        angle = line.angle()
-
-        p1 = end_pos + QPointF(arrow_size * -1, arrow_size / 2)
-        p2 = end_pos + QPointF(arrow_size * -1, arrow_size / -2)
-
-        arrow_head = QPolygonF([p1, p2, end_pos])
-
-        arrow_item = QGraphicsPolygonItem(arrow_head)
-        arrow_item.setPen(line_item.pen())
-        arrow_item.setBrush(line_item.pen().color())
-
-        self.scene().addItem(arrow_item)
-
-    def create_connector_preview(self, start_pos, end_pos):
-        pen = QPen(Qt.black, 2, Qt.DashLine)
-        preview_line = self.scene().addLine(
-            start_pos.x(), start_pos.y(), end_pos.x(), end_pos.y(), pen
-        )
-        return preview_line
-
     def handle_selection_change(self):
         selected_items = self.scene().selectedItems()
         if not selected_items:
