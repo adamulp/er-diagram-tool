@@ -72,6 +72,7 @@ class DiagramCanvas(QGraphicsView):
 
                 item = self.itemAt(event.pos())
                 if item and isinstance(item, ErDiagramItem):
+                    super().mousePressEvent(event)
                     if self.current_tool == "select":
                         if not item.isSelected():
                             self.scene().clearSelection()
@@ -134,7 +135,8 @@ class DiagramCanvas(QGraphicsView):
                     self.selection_box.setBrush(QBrush(Qt.NoBrush))
                     self.scene().addItem(self.selection_box)
 
-        super().mousePressEvent(event)
+            else:
+                super().mousePressEvent(event)
 
     def find_item_near_pos(self, pos):
         """Find an item near the given position."""
