@@ -184,28 +184,61 @@ class DiagramCanvas(QGraphicsView):
         }:
             if self.connector_preview:
                 # Finalize the connector creation
+                start_pos = self.connector_preview.line().p1()
+                end_pos = pos
                 end_item = self.itemAt(event.pos())
+
                 if isinstance(end_item, ErDiagramItem):
-                    connector = self.create_connector(
-                        self.connector_preview.line().p1(), pos, end_item
-                    )
+                    connector = self.create_connector(start_pos, end_pos, end_item)
                     self.scene().addItem(connector)
                     if self.connector_start_item:
                         connector.set_start_item(self.connector_start_item)
                     connector.set_end_item(end_item)
                 else:
                     # Just a visual line, no connections
-                    connector = self.create_connector(
-                        self.connector_preview.line().p1(), pos
-                    )
+                    connector = self.create_connector(start_pos, end_pos)
                     self.scene().addItem(connector)
 
+                # Apply styles based on the type of connector
+                if self.current_tool == "line_connector":
+                    pen = QPen(Qt.black, 2, Qt.SolidLine)
+                    connector.setPen(pen)
+                elif self.current_tool == "arrow_connector":
+                    pen = QPen(Qt.black, 2, Qt.SolidLine)
+                    connector.setPen(pen)
+                    self.add_arrowhead(start_pos, end_pos, connector)
+                elif self.current_tool == "double_arrow_connector":
+                    pen = QPen(Qt.black, 2, Qt.SolidLine)
+                    connector.setPen(pen)
+                    self.add_arrowhead(start_pos, end_pos, connector)
+                    self.add_arrowhead(end_pos, start_pos, connector)
+
+                # Clean up the preview and exit drawing mode
                 self.scene().removeItem(self.connector_preview)
                 self.connector_preview = None
                 self.connector_start_item = None
+                self.current_tool = None  # Exit drawing mode
 
         # Call the base class implementation to ensure default behavior
         super().mouseReleaseEvent(event)
+
+    def add_arrowhead(self, start_pos, end_pos, line_item):
+        arrow_size = 10
+        line = QLineF(start_pos, end_pos)
+
+        angle = line.angle()
+
+        p1 = end_pos + QPointF(arrow_size * -1, arrow_size / 2)
+        p2 = end_pos + QPointF(arrow_size * -1, arrow_size / -2)
+
+        arrow_head = QPolygonF([p1, p2, end_pos])
+
+        arrow_item = QGraphicsPolygonItem(arrow_head)
+        arrow_item.setPen(line_item.pen())
+        arrow_item.setBrush(line_item.pen().color())
+
+        self.scene().addItem(arrow_item)
+
 
     def create_connector(self, start_pos, end_pos, end_item=None):
         if self.current_tool == "arrow_connector":

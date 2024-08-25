@@ -10,6 +10,10 @@ class ConnectionNode:
         self.item = item
         self.connection_type = connection_type
 
+    def position(self):
+        """Return the position of the node. Adjust if necessary."""
+        return self.item.pos()  # Use item position directly
+
 
 class DiagramConnector(QGraphicsLineItem):
     def __init__(self, start_node=None, end_node=None, parent=None):
@@ -25,13 +29,13 @@ class DiagramConnector(QGraphicsLineItem):
     def update_position(self):
         if self.start_node and self.end_node:
             # Both nodes are defined
-            self.setLine(QLineF(self.start_node.item.pos(), self.end_node.item.pos()))
+            self.setLine(QLineF(self.start_node.position(), self.end_node.position()))
         elif self.start_node:
             # Only start node is defined
-            self.setLine(QLineF(self.start_node.item.pos(), self.line().p2()))
+            self.setLine(QLineF(self.start_node.position(), self.line().p2()))
         elif self.end_node:
             # Only end node is defined
-            self.setLine(QLineF(self.line().p1(), self.end_node.item.pos()))
+            self.setLine(QLineF(self.line().p1(), self.end_node.position()))
 
     def set_end_point(self, end_point):
         """Set the end point when drawing the connector dynamically in white space."""
