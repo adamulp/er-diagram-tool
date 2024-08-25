@@ -1,55 +1,34 @@
-from PyQt5.QtCore import QPointF, QLineF, QRectF
-from PyQt5.QtGui import QPen, QPolygonF, QBrush, QPainterPath
-from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsPolygonItem
+from PyQt5.QtWidgets import QGraphicsPolygonItem
+from PyQt5.QtGui import QPen, QPolygonF
+from PyQt5.QtCore import QPointF, QLineF
 from diagram_connector import DiagramConnector
 
 
 class DoubleArrowConnector(DiagramConnector):
-    def __init__(self, start_node, end_node, parent=None):
-        super().__init__(start_node, end_node, parent)
+    def __init__(self, start_pos=None, end_pos=None, parent=None):
+        super().__init__(start_pos, end_pos, parent)
 
-        self.arrow_size = 10  # Size of the arrowheads
+    def add_double_arrowheads(self):
+        """Add arrowheads at both ends of the connector."""
+        self.add_arrowhead(self.line().p1(), self.line().p2())
+        self.add_arrowhead(self.line().p2(), self.line().p1())
 
-        # Create the arrowheads at both ends
-        self.start_arrow_head = QGraphicsPolygonItem(self)
-        self.end_arrow_head = QGraphicsPolygonItem(self)
-        self.update_arrows()
+    def finalize(self, end_pos):
+        super().finalize(end_pos)
+        self.add_double_arrowheads()
 
-    def update_position(self):
-        """Update the line and arrowheads based on the positions of start_node and end_node."""
-        super().update_position()
+    def add_arrowhead(self, start_pos, end_pos):
+        """Helper method to add an arrowhead."""
+        arrow_size = 10
+        angle = QLineF(start_pos, end_pos).angle()
 
-        # Update the start and end arrowheads
-        self.update_arrows()
+        p1 = end_pos + QPointF(arrow_size * -1, arrow_size / 2)
+        p2 = end_pos + QPointF(arrow_size * -1, arrow_size / -2)
 
-    def update_arrows(self):
-        """Calculate and update the arrowheads at both ends."""
-        line = self.line()
+        arrow_head = QPolygonF([p1, p2, end_pos])
 
-        # Calculate the start arrowhead
-        angle = line.angle() + 180
-        arrow_p1 = line.p1() + QPointF(
-            self.arrow_size * -0.707, self.arrow_size * 0.707
-        ).rotated(angle)
-        arrow_p2 = line.p1() + QPointF(
-            self.arrow_size * 0.707, self.arrow_size * 0.707
-        ).rotated(angle)
-        self.start_arrow_head.setPolygon(QPolygonF([line.p1(), arrow_p1, arrow_p2]))
+        arrow_item = QGraphicsPolygonItem(arrow_head)
+        arrow_item.setPen(self.pen())
+        arrow_item.setBrush(self.pen().color())
 
-        # Calculate the end arrowhead
-        angle = line.angle()
-        arrow_p1 = line.p2() + QPointF(
-            self.arrow_size * -0.707, self.arrow_size * 0.707
-        ).rotated(angle)
-        arrow_p2 = line.p2() + QPointF(
-            self.arrow_size * 0.707, self.arrow_size * 0.707
-        ).rotated(angle)
-        self.end_arrow_head.setPolygon(QPolygonF([line.p2(), arrow_p1, arrow_p2]))
-
-        # Set the pen and brush for arrows
-        pen = QPen(Qt.black, 2, Qt.SolidLine)
-        brush = QBrush(Qt.black)
-        self.start_arrow_head.setPen(pen)
-        self.start_arrow_head.setBrush(brush)
-        self.end_arrow_head.setPen(pen)
-        self.end_arrow_head.setBrush(brush)
+        self.scene().addItem(arrow_item)

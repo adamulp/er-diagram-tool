@@ -4,8 +4,9 @@ from PyQt5.QtWidgets import (
     QGraphicsItem,
     QGraphicsRectItem,
     QGraphicsTextItem,
+    QGraphicsPolygonItem,
 )
-from PyQt5.QtGui import QCursor, QPainter, QBrush, QPen
+from PyQt5.QtGui import QCursor, QPainter, QBrush, QPen, QPolygonF
 from PyQt5.QtCore import Qt, QRectF, QPointF, QSizeF, QLineF
 
 from rectangle_table import RectItem
@@ -15,7 +16,7 @@ from diamond_relationship import DiamondItem
 from er_diagram import ErDiagramItem
 from diagram_connector import (
     DiagramConnector,
-)  # Make sure this is the correct import path
+)
 from arrow_connector import ArrowConnector
 from line_connector import LineConnector
 from double_arrow_connector import DoubleArrowConnector
@@ -25,25 +26,25 @@ class DiagramCanvas(QGraphicsView):
     def __init__(self, scene=None, parent=None):
         if scene is None:
             scene = QGraphicsScene()
-        scene.setSceneRect(0, 0, 800, 600)  # Adjust dimensions as needed
+        scene.setSceneRect(0, 0, 800, 600)
         super().__init__(scene, parent)
 
         self.setRenderHint(QPainter.Antialiasing)
         self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
         self.current_tool = None
         self.current_item = None
-        self.selection_box = None  # To hold the temporary selection box
-        self.selection_start = None  # Start point for selection box
+        self.selection_box = None
+        self.selection_start = None
 
-        self.connector_start_item = None  # Start item for connectors
-        self.connector_preview = None  # Preview line for connectors
+        self.connector_start_item = None
+        self.connector_preview = None
 
-        self.setScene(scene)  # Ensure the scene is set correctly
+        self.setScene(scene)
         self.scene().selectionChanged.connect(self.handle_selection_change)
 
     def set_tool(self, tool):
         if self.current_tool == "select":
-            self.exit_text_editing()  # Exit text editing mode for the previous item
+            self.exit_text_editing()
         self.current_tool = tool
         self.update_cursor()
 
@@ -60,21 +61,17 @@ class DiagramCanvas(QGraphicsView):
             self.setCursor(QCursor(Qt.CrossCursor))
         elif self.current_tool == "select":
             self.setCursor(QCursor(Qt.ArrowCursor))
-        elif self.current_tool in {"arrow_connector", "line_connector"}:
-            self.setCursor(QCursor(Qt.CrossCursor))
 
     def mousePressEvent(self, event):
         pos = self.mapToScene(event.pos())
 
         if event.button() == Qt.LeftButton:
             if self.current_tool in {"rect", "oval", "triangle", "diamond"}:
-                # Handle item creation or text editing
                 self.exit_text_editing()
                 self.scene().clearSelection()
 
                 item = self.itemAt(event.pos())
                 if item and isinstance(item, ErDiagramItem):
-                    # Clicked on an existing item: Select and enter text edit mode
                     if self.current_tool == "select":
                         if not item.isSelected():
                             self.scene().clearSelection()
@@ -82,7 +79,6 @@ class DiagramCanvas(QGraphicsView):
                         item.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
                         item.text_item.setFocus()
                 else:
-                    # Create a new item
                     if self.current_tool == "rect":
                         self.current_item = RectItem(pos.x(), pos.y(), 0, 0)
                     elif self.current_tool == "oval":
@@ -101,21 +97,19 @@ class DiagramCanvas(QGraphicsView):
                 "line_connector",
                 "double_arrow_connector",
             }:
-                # Handle connector creation
-                item = self.itemAt(event.pos())
-                if isinstance(item, ErDiagramItem):
-                    # Start a connector from an existing item
-                    self.connector_start_item = item
-                    self.connector_preview = self.create_connector_preview(pos, pos)
+                start_item = self.itemAt(event.pos())
+                if isinstance(start_item, ErDiagramItem):
+                    # Start drawing the connector with visible feedback
+                    self.connector_preview = self.create_connector(
+                        start_item.pos(), pos
+                    )
                     self.scene().addItem(self.connector_preview)
                 else:
-                    # Start a connector in empty space
-                    self.connector_start_item = None
-                    self.connector_preview = self.create_connector_preview(pos, pos)
+                    # Allow starting from any point on the scene
+                    self.connector_preview = self.create_connector(pos, pos)
                     self.scene().addItem(self.connector_preview)
 
             elif self.current_tool == "select":
-                # Handle selection and text editing
                 item = self.itemAt(event.pos())
                 if item and isinstance(item, ErDiagramItem):
                     if not item.isSelected():
@@ -124,7 +118,6 @@ class DiagramCanvas(QGraphicsView):
                     item.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
                     item.text_item.setFocus()
                 else:
-                    # Start the selection box for multi-selection
                     self.selection_start = pos
                     self.selection_box = QGraphicsRectItem(
                         QRectF(self.selection_start, QSizeF(0, 0))
@@ -138,7 +131,6 @@ class DiagramCanvas(QGraphicsView):
     def mouseMoveEvent(self, event):
         if self.current_tool == "select" and self.selection_start:
             if self.selection_box:
-                # Update the selection box as the mouse moves
                 selection_end = self.mapToScene(event.pos())
                 rect = QRectF(self.selection_start, selection_end).normalized()
                 self.selection_box.setRect(rect)
@@ -149,17 +141,9 @@ class DiagramCanvas(QGraphicsView):
             "double_arrow_connector",
         }:
             if self.connector_preview:
-                start_pos = self.connector_preview.line().p1()
+                # Update the end position of the preview connector to follow the mouse
                 end_pos = self.mapToScene(event.pos())
-
-                # Ensure both start_pos and end_pos are QPointF
-                if isinstance(start_pos, QPointF) and isinstance(end_pos, QPointF):
-                    # Create a QLineF with these points
-                    new_line = QLineF(start_pos, end_pos)
-                    self.connector_preview.setLine(new_line)
-                else:
-                    # Handle conversion or error
-                    print("Error: start_pos or end_pos is not of type QPointF")
+                self.connector_preview.set_end_pos(end_pos)
 
         super().mouseMoveEvent(event)
 
@@ -167,7 +151,6 @@ class DiagramCanvas(QGraphicsView):
         pos = self.mapToScene(event.pos())
 
         if self.current_tool == "select" and self.selection_box:
-            # Select items within the selection box
             rect = self.selection_box.rect()
             items = self.scene().items(rect)
             self.scene().clearSelection()
@@ -183,44 +166,27 @@ class DiagramCanvas(QGraphicsView):
             "double_arrow_connector",
         }:
             if self.connector_preview:
-                # Finalize the connector creation
-                start_pos = self.connector_preview.line().p1()
-                end_pos = pos
                 end_item = self.itemAt(event.pos())
 
                 if isinstance(end_item, ErDiagramItem):
-                    connector = self.create_connector(start_pos, end_pos, end_item)
-                    self.scene().addItem(connector)
-                    if self.connector_start_item:
-                        connector.set_start_item(self.connector_start_item)
-                    connector.set_end_item(end_item)
+                    # Finalize the connector by setting the final position and turning it into a solid line
+                    self.connector_preview.finalize(end_item.pos())
                 else:
-                    # Just a visual line, no connections
-                    connector = self.create_connector(start_pos, end_pos)
-                    self.scene().addItem(connector)
+                    # Finalize the connector at the last known position even if not connected to a valid item
+                    self.connector_preview.finalize(pos)
 
-                # Apply styles based on the type of connector
-                if self.current_tool == "line_connector":
-                    pen = QPen(Qt.black, 2, Qt.SolidLine)
-                    connector.setPen(pen)
-                elif self.current_tool == "arrow_connector":
-                    pen = QPen(Qt.black, 2, Qt.SolidLine)
-                    connector.setPen(pen)
-                    self.add_arrowhead(start_pos, end_pos, connector)
-                elif self.current_tool == "double_arrow_connector":
-                    pen = QPen(Qt.black, 2, Qt.SolidLine)
-                    connector.setPen(pen)
-                    self.add_arrowhead(start_pos, end_pos, connector)
-                    self.add_arrowhead(end_pos, start_pos, connector)
-
-                # Clean up the preview and exit drawing mode
-                self.scene().removeItem(self.connector_preview)
+                # Clean up and prepare for the next action
                 self.connector_preview = None
-                self.connector_start_item = None
-                self.current_tool = None  # Exit drawing mode
 
-        # Call the base class implementation to ensure default behavior
         super().mouseReleaseEvent(event)
+
+    def create_connector(self, start_pos, end_pos):
+        if self.current_tool == "arrow_connector":
+            return ArrowConnector(start_pos, end_pos)
+        elif self.current_tool == "line_connector":
+            return LineConnector(start_pos, end_pos)
+        elif self.current_tool == "double_arrow_connector":
+            return DoubleArrowConnector(start_pos, end_pos)
 
     def add_arrowhead(self, start_pos, end_pos, line_item):
         arrow_size = 10
@@ -239,17 +205,7 @@ class DiagramCanvas(QGraphicsView):
 
         self.scene().addItem(arrow_item)
 
-
-    def create_connector(self, start_pos, end_pos, end_item=None):
-        if self.current_tool == "arrow_connector":
-            return ArrowConnector(start_pos, end_pos, end_item)
-        elif self.current_tool == "line_connector":
-            return LineConnector(start_pos, end_pos, end_item)
-        elif self.current_tool == "double_arrow_connector":
-            return DoubleArrowConnector(start_pos, end_pos, end_item)
-
     def create_connector_preview(self, start_pos, end_pos):
-        # Create a preview line item to show the user where the connector will be drawn
         pen = QPen(Qt.black, 2, Qt.DashLine)
         preview_line = self.scene().addLine(
             start_pos.x(), start_pos.y(), end_pos.x(), end_pos.y(), pen
@@ -265,12 +221,10 @@ class DiagramCanvas(QGraphicsView):
         for item in selected_items:
             print(f"Selected item: {item}")
 
-            # Ensure no brush for selection
             if hasattr(item, "setBrush"):
                 item.setBrush(QBrush(Qt.NoBrush))
 
     def exit_text_editing(self):
-        # Exit text editing for all items in the scene
         for item in self.scene().items():
             if isinstance(item, ErDiagramItem):
                 item.clear_text_editing()
@@ -280,15 +234,11 @@ class DiagramCanvas(QGraphicsView):
         item = self.itemAt(event.pos())
 
         if item and isinstance(item, ErDiagramItem):
-            # Exit text editing mode for all other items
             self.exit_text_editing()
-
-            # Enable text editing for the double-clicked item
             item.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
             item.text_item.setFlag(QGraphicsItem.ItemIsFocusable)
             item.text_item.setFocus()
 
-            # Switch to selection tool
             self.set_tool("select")
             self.update_cursor()
         else:

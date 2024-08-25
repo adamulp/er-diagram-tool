@@ -2,9 +2,7 @@ from diagram_connector import DiagramConnector
 
 
 class LineConnector(DiagramConnector):
-    def __init__(self, start_node, end_node, parent=None):
-        super().__init__(start_node, end_node, parent)
+    def __init__(self, start_pos=None, end_pos=None, parent=None):
+        super().__init__(start_pos, end_pos, parent)
 
-    def update_position(self):
-        super().update_position()
-        # No additional features needed for a simple line connector
+    # You can add any specific methods for LineConnector here if needed
