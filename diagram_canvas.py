@@ -104,11 +104,17 @@ class DiagramCanvas(QGraphicsView):
                         start_item, start_item.pos()
                     )
                     self.connector_preview.start_item = start_item  # Set the start item
+                    self.connector_preview.setZValue(
+                        -1
+                    )  # Lower the Z-value of the connector preview
                     self.scene().addItem(self.connector_preview)
                 else:
                     # Allow starting from any point on the scene
                     self.connector_preview = self.create_connector(None, pos)
                     self.connector_preview.start_pos = pos
+                    self.connector_preview.setZValue(
+                        -1
+                    )  # Lower the Z-value of the connector preview
                     self.scene().addItem(self.connector_preview)
 
             elif self.current_tool == "select":
@@ -130,6 +136,14 @@ class DiagramCanvas(QGraphicsView):
 
         super().mousePressEvent(event)
 
+    def find_item_near_pos(self, pos):
+        """Find an item near the given position."""
+        items = self.scene().items(QRectF(pos - QPointF(5, 5), QSizeF(10, 10)))
+        for item in items:
+            if isinstance(item, ErDiagramItem):
+                return item
+        return None
+
     def mouseReleaseEvent(self, event):
         pos = self.mapToScene(event.pos())
 
@@ -149,18 +163,20 @@ class DiagramCanvas(QGraphicsView):
             "double_arrow_connector",
         }:
             if self.connector_preview:
-                end_item = self.itemAt(event.pos())
+                end_item = self.find_item_near_pos(pos)
+                print(f"Mouse release at position: {pos}")
+                print(f"Item near mouse: {end_item}")
 
                 if isinstance(end_item, ErDiagramItem):
-                    # Set the end item and finalize the connector
                     self.connector_preview.set_end_item(end_item)
                     self.connector_preview.finalize(end_item.pos())
                 else:
-                    # Set the end position and finalize the connector
                     self.connector_preview.set_end_pos(pos)
                     self.connector_preview.finalize(pos)
 
-                # Clean up and prepare for the next action
+                print(f"Start item after release: {self.connector_preview.start_item}")
+                print(f"End item after release: {self.connector_preview.end_item}")
+
                 self.connector_preview = None
 
         super().mouseReleaseEvent(event)
