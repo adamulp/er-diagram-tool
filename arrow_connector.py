@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QGraphicsPolygonItem
 from PyQt5.QtGui import QPen, QPolygonF
 from PyQt5.QtCore import QPointF, QLineF
 from diagram_connector import DiagramConnector
+import math
 
 
 class ArrowConnector(DiagramConnector):
@@ -10,10 +11,18 @@ class ArrowConnector(DiagramConnector):
 
     def add_arrowhead(self):
         arrow_size = 10
-        angle = self.line().angle()
+        line = self.line()
+        angle = math.atan2(line.dy(), line.dx())  # Correct angle calculation
 
-        p1 = self.line().p2() + QPointF(arrow_size * -1, arrow_size / 2)
-        p2 = self.line().p2() + QPointF(arrow_size * -1, arrow_size / -2)
+        # Calculate the arrowhead points based on the line angle
+        p1 = self.line().p2() + QPointF(
+            -arrow_size * math.cos(angle - math.pi / 6),
+            -arrow_size * math.sin(angle - math.pi / 6),
+        )
+        p2 = self.line().p2() + QPointF(
+            -arrow_size * math.cos(angle + math.pi / 6),
+            -arrow_size * math.sin(angle + math.pi / 6),
+        )
 
         arrow_head = QPolygonF([p1, p2, self.line().p2()])
 
