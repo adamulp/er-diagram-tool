@@ -99,14 +99,16 @@ class DiagramCanvas(QGraphicsView):
             }:
                 start_item = self.itemAt(event.pos())
                 if isinstance(start_item, ErDiagramItem):
-                    # Start drawing the connector with visible feedback
+                    # Create the connector and set the start item and start position
                     self.connector_preview = self.create_connector(
-                        start_item.pos(), pos
+                        start_item, start_item.pos()
                     )
+                    self.connector_preview.start_item = start_item  # Set the start item
                     self.scene().addItem(self.connector_preview)
                 else:
                     # Allow starting from any point on the scene
-                    self.connector_preview = self.create_connector(pos, pos)
+                    self.connector_preview = self.create_connector(None, pos)
+                    self.connector_preview.start_pos = pos
                     self.scene().addItem(self.connector_preview)
 
             elif self.current_tool == "select":
@@ -127,25 +129,6 @@ class DiagramCanvas(QGraphicsView):
                     self.scene().addItem(self.selection_box)
 
         super().mousePressEvent(event)
-
-    def mouseMoveEvent(self, event):
-        if self.current_tool == "select" and self.selection_start:
-            if self.selection_box:
-                selection_end = self.mapToScene(event.pos())
-                rect = QRectF(self.selection_start, selection_end).normalized()
-                self.selection_box.setRect(rect)
-
-        if self.current_tool in {
-            "line_connector",
-            "arrow_connector",
-            "double_arrow_connector",
-        }:
-            if self.connector_preview:
-                # Update the end position of the preview connector to follow the mouse
-                end_pos = self.mapToScene(event.pos())
-                self.connector_preview.set_end_pos(end_pos)
-
-        super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         pos = self.mapToScene(event.pos())
@@ -169,16 +152,43 @@ class DiagramCanvas(QGraphicsView):
                 end_item = self.itemAt(event.pos())
 
                 if isinstance(end_item, ErDiagramItem):
-                    # Finalize the connector by setting the final position and turning it into a solid line
+                    # Set the end item and finalize the connector
+                    self.connector_preview.set_end_item(end_item)
                     self.connector_preview.finalize(end_item.pos())
                 else:
-                    # Finalize the connector at the last known position even if not connected to a valid item
+                    # Set the end position and finalize the connector
+                    self.connector_preview.set_end_pos(pos)
                     self.connector_preview.finalize(pos)
 
                 # Clean up and prepare for the next action
                 self.connector_preview = None
 
         super().mouseReleaseEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self.current_tool == "select" and self.selection_start:
+            if self.selection_box:
+                selection_end = self.mapToScene(event.pos())
+                rect = QRectF(self.selection_start, selection_end).normalized()
+                self.selection_box.setRect(rect)
+
+        if self.current_tool in {
+            "line_connector",
+            "arrow_connector",
+            "double_arrow_connector",
+        }:
+            if self.connector_preview:
+                # Update the end position of the preview connector to follow the mouse
+                end_pos = self.mapToScene(event.pos())
+                self.connector_preview.set_end_pos(end_pos)
+
+        # Prevent moving items when a connector tool is selected
+        if self.current_tool not in {
+            "arrow_connector",
+            "line_connector",
+            "double_arrow_connector",
+        }:
+            super().mouseMoveEvent(event)
 
     def create_connector(self, start_pos, end_pos):
         if self.current_tool == "arrow_connector":

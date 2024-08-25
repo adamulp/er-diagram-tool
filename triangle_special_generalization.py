@@ -21,10 +21,11 @@ class TriangleItem(ErDiagramItem):
         return QRectF(0, 0, self.width, self.height)
 
     def paint(self, painter, option, widget):
+        # Inverted points for the triangle
         points = [
-            QPointF(0, self.height),
-            QPointF(self.width / 2, 0),
-            QPointF(self.width, self.height),
+            QPointF(0, 0),  # Bottom-left corner
+            QPointF(self.width / 2, self.height),  # Top-middle point
+            QPointF(self.width, 0),  # Bottom-right corner
         ]
 
         triangle = QPolygonF(points)
