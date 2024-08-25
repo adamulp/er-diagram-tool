@@ -185,7 +185,6 @@ class DiagramCanvas(QGraphicsView):
                 item.clear_text_editing()
 
     def mouseDoubleClickEvent(self, event):
-        super().mouseDoubleClickEvent(event)
         pos = self.mapToScene(event.pos())
         item = self.itemAt(event.pos())
 
@@ -201,3 +200,5 @@ class DiagramCanvas(QGraphicsView):
             # Switch to selection tool
             self.set_tool("select")
             self.update_cursor()
+        else:
+            super().mouseDoubleClickEvent(event)

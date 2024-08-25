@@ -31,6 +31,7 @@ class ErDiagramItem(QGraphicsItem):
         self.text_item.document().contentsChanged.connect(self.update_size)
 
     def mouseDoubleClickEvent(self, event):
+        print(f"Double-clicked on: {type(self).__name__}")  # Debugging line
         self.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
         self.text_item.setFocus()
         self.text_item.setCursor(QCursor(Qt.IBeamCursor))

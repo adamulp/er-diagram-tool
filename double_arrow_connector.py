@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QPointF, QLineF, QRectF
 from PyQt5.QtGui import QPen, QPolygonF, QBrush, QPainterPath
-from PyQt5.QtWidgets import QGraphicsLineItem
+from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsPolygonItem
 from diagram_connector import DiagramConnector
 
 
