@@ -30,23 +30,6 @@ class ErDiagramItem(QGraphicsItem):
         # Connect the contentsChanged signal to update the size and position
         self.text_item.document().contentsChanged.connect(self.update_size)
 
-    def mouseDoubleClickEvent(self, event):
-        print(f"Double-clicked on: {type(self).__name__}")  # Debugging line
-        self.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
-        self.text_item.setFocus()
-        self.text_item.setCursor(QCursor(Qt.IBeamCursor))
-
-        # Switch to the selection tool
-        self.scene().clearSelection()  # Clear any previous selections
-        self.setSelected(True)  # Select the current item
-
-        # Access the main window and select the selection tool
-        main_window = self.scene().main_window
-        if main_window:
-            main_window.tool_selection_bar.select_tool("select")
-
-        super().mouseDoubleClickEvent(event)
-
     def set_text(self, text):
         self.text_item.setPlainText(text)
         self.update_size()

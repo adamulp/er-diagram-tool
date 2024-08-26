@@ -129,8 +129,8 @@ class DiagramCanvas(QGraphicsView):
                     if not item.isSelected():
                         self.scene().clearSelection()
                         item.setSelected(True)
-                    item.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
-                    item.text_item.setFocus()
+                    # item.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
+                    # item.text_item.setFocus()
                 else:
                     self.selection_start = pos
                     self.selection_box = QGraphicsRectItem(
@@ -282,11 +282,11 @@ class DiagramCanvas(QGraphicsView):
 
         if item and isinstance(item, ErDiagramItem):
             self.exit_text_editing()
-            item.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
             item.text_item.setFlag(QGraphicsItem.ItemIsFocusable)
+            # self.update_cursor()
+            self.current_tool = "text"
+            item.setSelected(True)
+            item.text_item.setTextInteractionFlags(Qt.TextEditorInteraction)
             item.text_item.setFocus()
-
-            self.set_tool("select")
-            self.update_cursor()
         else:
             super().mouseDoubleClickEvent(event)
