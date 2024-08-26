@@ -170,6 +170,16 @@ class DiagramCanvas(QGraphicsView):
                 print(f"Item near mouse: {end_item}")
 
                 if isinstance(end_item, ErDiagramItem):
+                    # Check for an existing connector between start_item and end_item
+                    old_connector = self.find_existing_connector(
+                        self.connector_preview.start_item, end_item
+                    )
+                    if old_connector:
+                        # Remove the old connector
+                        self.scene().removeItem(old_connector)
+                        print("Old connector removed and replaced with the new one.")
+
+                    # Finalize the new connector
                     self.connector_preview.set_end_item(end_item)
                     self.connector_preview.finalize(end_item.pos())
                 else:
@@ -182,6 +192,16 @@ class DiagramCanvas(QGraphicsView):
                 self.connector_preview = None
 
         super().mouseReleaseEvent(event)
+
+    def find_existing_connector(self, start_item, end_item):
+        """Find an existing connector between two items and return it."""
+        for item in self.scene().items():
+            if isinstance(item, DiagramConnector):
+                if (item.start_item == start_item and item.end_item == end_item) or (
+                    item.start_item == end_item and item.end_item == start_item
+                ):
+                    return item
+        return None
 
     def mouseMoveEvent(self, event):
         if self.current_tool == "select" and self.selection_start:
