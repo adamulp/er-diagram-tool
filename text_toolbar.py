@@ -1,8 +1,10 @@
 from PyQt5.QtWidgets import (
     QToolBar,
     QAction,
-    QFontComboBox,
     QComboBox,
+    QSpacerItem,
+    QSizePolicy,
+    QWidget,
 )
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import Qt
@@ -12,6 +14,20 @@ class TextToolbar(QToolBar):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.main_window = parent
+
+        # Define a list of preferred fonts
+        preferred_fonts = [
+            "Noto Sans",
+            "Arial",
+            "Times New Roman",
+            "Georgia",
+            "Verdana",
+            "Tahoma",
+            "Courier New",
+            "Comic Sans MS",  # Optionally include
+            "Trebuchet MS",
+            "Impact",
+        ]
 
         # Bold action
         self.bold_action = QAction(QIcon("icons/bold.svg"), "Bold", self)
@@ -31,9 +47,16 @@ class TextToolbar(QToolBar):
         self.underline_action.triggered.connect(self.toggle_underline)
         self.addAction(self.underline_action)
 
-        # Font selection box
-        self.font_box = QFontComboBox(self)
-        self.font_box.currentFontChanged.connect(self.change_font)
+        spacer = QWidget(self)
+        spacer.setFixedWidth(20)
+        self.addWidget(spacer)
+
+        # Custom font selection box using QComboBox
+        self.font_box = QComboBox(self)
+        for font in preferred_fonts:
+            self.font_box.addItem(font)
+        self.font_box.setCurrentText("Noto Sans")
+        self.font_box.currentTextChanged.connect(self.change_font)
         self.addWidget(self.font_box)
 
         # Font size selection box
@@ -84,10 +107,10 @@ class TextToolbar(QToolBar):
 
         self.apply_format_to_selected_item(format_function)
 
-    def change_font(self, font):
+    def change_font(self, font_name):
         def format_function(cursor):
             fmt = cursor.charFormat()
-            fmt.setFontFamily(font.family())
+            fmt.setFontFamily(font_name)
             cursor.setCharFormat(fmt)
 
         self.apply_format_to_selected_item(format_function)
