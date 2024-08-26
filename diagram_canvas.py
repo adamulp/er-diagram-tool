@@ -35,6 +35,7 @@ class DiagramCanvas(QGraphicsView):
         self.current_item = None
         self.selection_box = None
         self.selection_start = None
+        self.erasing = False
 
         self.connector_start_item = None
         self.connector_preview = None
@@ -68,14 +69,12 @@ class DiagramCanvas(QGraphicsView):
 
         if event.button() == Qt.LeftButton:
             if self.current_tool == "eraser":
+                self.erasing = True
                 item = self.itemAt(event.pos())
-                if item and isinstance(item, (ErDiagramItem, DiagramConnector)):
-                    # Ensure associated arrowheads are removed as well
-                    if isinstance(item, (ArrowConnector, DoubleArrowConnector)):
-                        item.removeItem()  # Custom method to remove the connector and its arrowhead(s)
-                    else:
-                        self.scene().removeItem(item)
+                self.erase_item(item)
                 return
+            else:
+                self.erasing = False
 
             if self.current_tool in {"rect", "oval", "triangle", "diamond"}:
                 self.exit_text_editing()
@@ -152,7 +151,20 @@ class DiagramCanvas(QGraphicsView):
                 return item
         return None
 
+    def erase_item(self, item):
+        """Erase the given item from the scene."""
+        if item and isinstance(item, (ErDiagramItem, DiagramConnector)):
+            if isinstance(item, (ArrowConnector, DoubleArrowConnector)):
+                item.removeItem()  # Custom method to remove connector and its arrowhead(s)
+            else:
+                self.scene().removeItem(item)
+
     def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            if self.erasing:
+                self.erasing = False
+                return
+
         pos = self.mapToScene(event.pos())
 
         if self.current_tool == "select" and self.selection_box:
@@ -210,6 +222,11 @@ class DiagramCanvas(QGraphicsView):
         return None
 
     def mouseMoveEvent(self, event):
+        if self.erasing and self.current_tool == "eraser":
+            item = self.itemAt(event.pos())  # Capture the item directly from the event
+            self.erase_item(item)
+            return
+
         if self.current_tool == "select" and self.selection_start:
             if self.selection_box:
                 selection_end = self.mapToScene(event.pos())
