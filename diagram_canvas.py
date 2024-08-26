@@ -57,6 +57,7 @@ class DiagramCanvas(QGraphicsView):
             "arrow_connector",
             "line_connector",
             "double_arrow_connector",
+            "eraser",
         }:
             self.setCursor(QCursor(Qt.CrossCursor))
         elif self.current_tool == "select":
@@ -66,6 +67,16 @@ class DiagramCanvas(QGraphicsView):
         pos = self.mapToScene(event.pos())
 
         if event.button() == Qt.LeftButton:
+            if self.current_tool == "eraser":
+                item = self.itemAt(event.pos())
+                if item and isinstance(item, (ErDiagramItem, DiagramConnector)):
+                    # Ensure associated arrowheads are removed as well
+                    if isinstance(item, (ArrowConnector, DoubleArrowConnector)):
+                        item.removeItem()  # Custom method to remove the connector and its arrowhead(s)
+                    else:
+                        self.scene().removeItem(item)
+                return
+
             if self.current_tool in {"rect", "oval", "triangle", "diamond"}:
                 self.exit_text_editing()
                 self.scene().clearSelection()
@@ -100,22 +111,17 @@ class DiagramCanvas(QGraphicsView):
             }:
                 start_item = self.itemAt(event.pos())
                 if isinstance(start_item, ErDiagramItem):
-                    # Create the connector and set the start item and start position
                     self.connector_preview = self.create_connector(
                         start_item, start_item.pos()
                     )
-                    self.connector_preview.start_item = start_item  # Set the start item
-                    self.connector_preview.setZValue(
-                        -1
-                    )  # Lower the Z-value of the connector preview
+                    self.connector_preview.start_item = start_item
+                    self.connector_preview.setZValue(-1)
                     self.scene().addItem(self.connector_preview)
                 else:
                     # Allow starting from any point on the scene
                     self.connector_preview = self.create_connector(None, pos)
                     self.connector_preview.start_pos = pos
-                    self.connector_preview.setZValue(
-                        -1
-                    )  # Lower the Z-value of the connector preview
+                    self.connector_preview.setZValue(-1)
                     self.scene().addItem(self.connector_preview)
 
             elif self.current_tool == "select":

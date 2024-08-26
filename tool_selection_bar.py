@@ -72,6 +72,12 @@ class ToolSelectionBar(QToolBar):
         self.select_action.triggered.connect(lambda: self.set_tool("select"))
         self.addAction(self.select_action)
 
+        # Add the eraser tool button
+        self.eraser_action = QAction(QIcon("icons/eraser.svg"), "Eraser Tool", self)
+        self.eraser_action.setCheckable(True)
+        self.eraser_action.triggered.connect(lambda: self.set_tool("eraser"))
+        self.addAction(self.eraser_action)
+
         # Group actions so only one can be checked at a time
         self.action_group = QActionGroup(self)
         self.action_group.setExclusive(True)
@@ -84,6 +90,7 @@ class ToolSelectionBar(QToolBar):
         self.action_group.addAction(self.line_action)
         self.action_group.addAction(self.text_action)
         self.action_group.addAction(self.select_action)
+        self.action_group.addAction(self.eraser_action)
 
     def set_tool(self, tool_name):
         """This method will set the active tool in the diagram canvas."""
@@ -103,6 +110,7 @@ class ToolSelectionBar(QToolBar):
             "line_connector": self.line_action,
             "text": self.text_action,
             "select": self.select_action,
+            "eraser": self.eraser_action,
         }
         action = action_map.get(tool_name)
         if action:
